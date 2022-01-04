@@ -36,7 +36,7 @@ function renderFood() {
     context.fillRect(food.x, food.y, boxSize, boxSize);
 }
 
-function createFood(){
+function createFood() {
     let validPosition = false;
     while (!validPosition) {
         let newFood = {
@@ -45,15 +45,27 @@ function createFood(){
         }
         validPosition = true;
         for (i = 0; validPosition && i < snake.length; i++) {
-            if(snake[i].x == newFood.x && snake[i].y == newFood.y) {
+            if (snake[i].x == newFood.x && snake[i].y == newFood.y) {
                 validPosition = false;
             }
         }
-        if(validPosition) {
+        if (validPosition) {
             food = newFood;
         }
     }
 
+}
+
+function checkColision() {
+    if (snake.length > 2) {
+        let head = snake[0];
+        for (i = 1; i < snake.length; i++) {
+            if (snake[i].x == head.x && snake[i].y == head.y) {
+                alert("GAME OVER");
+                document.location.reload(true);
+            }
+        }
+    }
 }
 
 document.addEventListener('keydown', keydownEvent);
@@ -91,6 +103,7 @@ function updateGame() {
     renderBackground();
     renderSnake();
     renderFood();
+    checkColision();
 
     let snakeX = snake[0].x;
     let snakeY = snake[0].y;
@@ -112,15 +125,15 @@ function updateGame() {
     hasNewDirection = false;
 
     if (snakeX < 0 && direction == left_keymap) {
-        snakeX = (areaSize-1) * boxSize;
+        snakeX = (areaSize - 1) * boxSize;
     }
-    if (snakeX > (areaSize-1) * boxSize && direction == right_keymap) {
+    if (snakeX > (areaSize - 1) * boxSize && direction == right_keymap) {
         snakeX = 0;
     }
     if (snakeY < 0 && direction == up_keymap) {
-        snakeY = (areaSize-1) * boxSize;
+        snakeY = (areaSize - 1) * boxSize;
     }
-    if (snakeY > (areaSize-1) * boxSize && direction == down_keymap) {
+    if (snakeY > (areaSize - 1) * boxSize && direction == down_keymap) {
         snakeY = 0;
     }
 
@@ -129,12 +142,11 @@ function updateGame() {
         y: snakeY
     }
 
-    if(newHead.x == food.x && newHead.y == food.y) {
+    if (newHead.x == food.x && newHead.y == food.y) {
         createFood();
     } else {
         snake.pop(); //remove last element of array
     }
-
     snake.unshift(newHead); //add a new element in begin of array
 }
 setInterval(updateGame, 100);
