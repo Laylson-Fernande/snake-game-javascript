@@ -7,12 +7,18 @@ snake[0] = {
     x: 8 * boxSize,
     y: 8 * boxSize
 }
+
+let food = {
+    x: Math.floor(Math.random() * (areaSize - 1) + 1) * boxSize,
+    y: Math.floor(Math.random() * (areaSize - 1) + 1) * boxSize
+}
 const left_keymap = 37;
 const up_keymap = 38;
 const right_keymap = 39;
 const down_keymap = 40;
 
 let direction = right_keymap;
+let hasNewDirection = true;
 function renderBackground() {
     context.fillStyle = "lightgreen";
     context.fillRect(0, 0, areaSize * boxSize, areaSize * boxSize);
@@ -25,28 +31,57 @@ function renderSnake() {
     }
 }
 
+function renderFood() {
+    context.fillStyle = "red";
+    context.fillRect(food.x, food.y, boxSize, boxSize);
+}
+
+function createFood(){
+    let validPosition = false;
+    while (!validPosition) {
+        let newFood = {
+            x: Math.floor(Math.random() * (areaSize - 1) + 1) * boxSize,
+            y: Math.floor(Math.random() * (areaSize - 1) + 1) * boxSize
+        }
+        validPosition = true;
+        for (i = 0; validPosition && i < snake.length; i++) {
+            if(snake[i].x == newFood.x && snake[i].y == newFood.y) {
+                validPosition = false;
+            }
+        }
+        if(validPosition) {
+            food = newFood;
+        }
+    }
+
+}
+
 document.addEventListener('keydown', keydownEvent);
 
 function keydownEvent(event) {
     switch (event.keyCode) {
         case right_keymap:
-            if (direction != left_keymap) {
+            if (direction != left_keymap && !hasNewDirection) {
                 direction = right_keymap;
+                hasNewDirection = true;
             }
             break;
         case left_keymap:
-            if (direction != right_keymap) {
+            if (direction != right_keymap && !hasNewDirection) {
                 direction = left_keymap;
+                hasNewDirection = true;
             }
             break;
         case up_keymap:
-            if (direction != down_keymap) {
+            if (direction != down_keymap && !hasNewDirection) {
                 direction = up_keymap;
+                hasNewDirection = true;
             }
             break;
         case down_keymap:
-            if (direction != up_keymap) {
+            if (direction != up_keymap && !hasNewDirection) {
                 direction = down_keymap;
+                hasNewDirection = true;
             }
             break;
     }
@@ -55,6 +90,7 @@ function keydownEvent(event) {
 function updateGame() {
     renderBackground();
     renderSnake();
+    renderFood();
 
     let snakeX = snake[0].x;
     let snakeY = snake[0].y;
@@ -73,6 +109,8 @@ function updateGame() {
             snakeY += boxSize;
             break;
     }
+    hasNewDirection = false;
+
     if (snakeX < 0 && direction == left_keymap) {
         snakeX = (areaSize-1) * boxSize;
     }
@@ -86,11 +124,15 @@ function updateGame() {
         snakeY = 0;
     }
 
-    snake.pop(); //remove last element of array
-
     let newHead = {
         x: snakeX,
         y: snakeY
+    }
+
+    if(newHead.x == food.x && newHead.y == food.y) {
+        createFood();
+    } else {
+        snake.pop(); //remove last element of array
     }
 
     snake.unshift(newHead); //add a new element in begin of array
