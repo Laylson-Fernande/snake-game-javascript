@@ -12,16 +12,26 @@ class SnakeTrainer extends Snake {
     genes = [];
 
     isAlive = true;
-    constructor(parameters) {
-        if (parameters.neuralLayers && parameters.learningRate) {
-            this.neural = new Network(parameters.neuralLayers, parameters.learningRate);
+    constructor(initialize) {
+        if (TrainingManager.NEURAL_LAYERS && TrainingManager.LEARNING_RATE) {
+            this.neural = new Network(TrainingManager.NEURAL_LAYERS, TrainingManager.LEARNING_RATE);
         }
-        this.genes.length = length;
+        if (initialize && this.neural) {
+            this.genes = this.neural.getGenes();
+        } else {
+            this.genes.length = TrainingManager.GENES_SIZE;
+        }
     }
 
-    initializeChromosome() {
+    sumFitness(sum) {
+        this.fitness = this.fitness + sum;
+    }
 
-        this.fitness = this.recalculateFitness();
-        return this;
+    getGenes() {
+        return this.genes();
+    }
+
+    getFitness() {
+        return this.fitness;
     }
 }
