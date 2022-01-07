@@ -51,5 +51,18 @@ class Network {
             this.train(x[rand], y[rand]);
         }
     }
-}
 
+    getGenes() {
+        let genes = [];
+        for (let i = 0; i < this.layers.length; i++) {
+            genes = this.layers[i].getGenes(genes);
+        }
+        return genes;
+    }
+
+    setGenes(genes) {
+        for (let i = 0; i < this.layers.length; i++) {
+            genes = this.layers[i].getGenes(genes);
+        }
+    }
+}

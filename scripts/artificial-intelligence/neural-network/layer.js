@@ -3,7 +3,7 @@ class Layer {
     bias;
     hidden;
 
-    constructor(input, neurons){
+    constructor(input, neurons) {
         this.weights = new Matrix(neurons, input);
         this.bias = new Matrix(neurons, 1);
         this.hidden = null;
@@ -11,7 +11,7 @@ class Layer {
 
     getActivation(input) {
         this.hidden = input;
-        let output = Matrix.multiply(this.weights,input);
+        let output = Matrix.multiply(this.weights, input);
         output.addMatrix(this.bias);
         output.sigmoid();
         return output;
@@ -25,27 +25,48 @@ class Layer {
         return this.weights;
     }
 
-    get weights(){
+    getGenes(genes) {
+        let tempArray = this.weights.toArray();
+        Array.prototype.push.apply(genes, tempArray);
+
+        tempArray = this.bias.toArray();
+        Array.prototype.push.apply(genes, tempArray);
+        return genes;
+    }
+
+    setGenes(genes) {
+        let genesIndex = 0;
+        let size = this.weights.rows * this.weights.cols;
+        let tempArray = genes.slice(genesIndex, size);
+        this.weights.dataFromArray(tempArray);
+
+        genesIndex = size;
+        tempArray = genes.slice(genesIndex, size);
+        this.bias.dataFromArray(tempArray);
+        return genes.slice(size);
+    }
+
+    get weights() {
         return this.weights;
     }
 
-    set weights(_weights){
+    set weights(_weights) {
         this.weights = _weights;
     }
 
-    get bias(){
+    get bias() {
         return this.bias;
     }
 
-    set bias(_bias){
+    set bias(_bias) {
         this.bias = _bias;
     }
 
-    get hidden(){
+    get hidden() {
         return this.hidden;
     }
 
-    set hidden(_hidden){
+    set hidden(_hidden) {
         this.hidden = _hidden;
     }
 }

@@ -1,5 +1,7 @@
 class Matrix {
-    data = [[]];
+    data = [
+        []
+    ];
     rows = 0;
     cols = 0;
 
@@ -61,7 +63,7 @@ class Matrix {
             for (let j = 0; j < result.cols; j++) {
                 let sum = 0;
                 for (let k = 0; k < matrix_a.cols; k++) {
-                    if(!matrix_b.data[k]){
+                    if (!matrix_b.data[k]) {
                         console.log("undefined");
                     }
                     sum += matrix_a.data[i][k] * matrix_b.data[k][j];
@@ -106,21 +108,33 @@ class Matrix {
         return result;
     }
 
-    static fromArray(array){
+    static fromArray(array) {
         let result = new Matrix(array.length, 1);
         for (let i = 0; i < array.length; i++) {
-			result.data[i][0] = array[i];
-		}
-		return result;
+            result.data[i][0] = array[i];
+        }
+        return result;
     }
 
-    toArray(){
+    toArray() {
         let result = [];
         for (let i = 0; i < this.rows; i++) {
-			for (let j = 0; j < this.cols; j++) {
-				result.push(this.data[i][j]);
-			}
-		}
-		return result;
+            for (let j = 0; j < this.cols; j++) {
+                result.push(this.data[i][j]);
+            }
+        }
+        return result;
     }
+
+    dataFromArray(array) {
+        let size = this.rows * this.cols;
+        let index = 0;
+        for (let i = 0; i < this.rows && index < size; i++) {
+            for (let j = 0; j < this.cols && index < size; j++) {
+                this.data[i][j] = array[index];
+                index++;
+            }
+        }
+    }
+
 }
