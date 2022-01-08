@@ -62,7 +62,7 @@ class Network {
 
     setGenes(genes) {
         for (let i = 0; i < this.layers.length; i++) {
-            genes = this.layers[i].getGenes(genes);
+            genes = this.layers[i].setGenes(genes);
         }
     }
 }

@@ -53,7 +53,6 @@ function createFood() {
             food = newFood;
         }
     }
-
 }
 
 function checkColision() {

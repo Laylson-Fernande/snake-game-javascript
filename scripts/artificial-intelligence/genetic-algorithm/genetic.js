@@ -32,7 +32,7 @@ class GeneticAlgorithm {
     }
 
     crossoverChromosome(a, b) {
-        let crossoverChromosome = new Chromosome(TrainingManager.TARGET_CHROMOSOME.length);
+        let crossoverChromosome = new SnakeTrainer(true);
         for (let i = 0, size = a.genes.length; i < size; i++) {
             if (Math.random() < 0.5) {
                 crossoverChromosome.genes[i] = a.genes[i];
@@ -44,7 +44,7 @@ class GeneticAlgorithm {
     }
 
     mutateChromosome(chromosome) {
-        let mutateChromosome = new Chromosome(TrainingManager.TARGET_CHROMOSOME.length);
+        let mutateChromosome = new SnakeTrainer(true);
         for (let i = 0, size = chromosome.genes.length; i < size; i++) {
             if (Math.random() < TrainingManager.MUTATION_RATE) {
                 if (Math.random() < 0.5) {
