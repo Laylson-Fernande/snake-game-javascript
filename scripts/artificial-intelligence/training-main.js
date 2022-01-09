@@ -1,34 +1,20 @@
 let mainCanvas = document.getElementById("mainCanvas");
 let context = mainCanvas.getContext("2d");
-let food;
-let createNewFood = true;
-
-let board = [[]];
-
+let maxSnakeRender = 1;
 let boxSize = 32;
 let parameters = {
     areaSize: 16,
-    populationSize: 100,
-    percentEliteChromosomes: 0.1,
-    percentTournamentSelection: 0.4,
-    mutationRate: 0.25,
-    neuralLayers: [258, 10, 2],
+    populationSize: 500,
+    percentEliteChromosomes: 0.2,
+    percentTournamentSelection: 0.5,
+    mutationRate: 0.20,
+    neuralLayers: [258,100, 10, 2],
     learningRate: 0.01
 }
 let manager = new TrainingManager(parameters);
 let food_lifetime = parameters.areaSize * 2;
 
-function restartBoard() {
-    board = [];
-    board.length = parameters.areaSize;
-    for (let i = 0; i < parameters.areaSize; i++) {
-        board[i] = [];
-        board[i].length = parameters.areaSize;
-        for (let j = 0; j < parameters.areaSize; j++) {
-            board[i][j] = 0;
-        }
-    }
-}
+let render = true;
 
 function renderBackground() {
     context.fillStyle = "lightgreen";
@@ -36,73 +22,34 @@ function renderBackground() {
 }
 
 function renderSnake(snake) {
-    if (snake.length > 0) {
-        let head = snake[0];
-        if (head.x < 0) {
-            head.x = parameters.areaSize - 1;
-        }
-        if (head.x > parameters.areaSize - 1) {
-            head.x = 0;
-        }
-        if (head.y < 0) {
-            head.y = parameters.areaSize - 1;
-        }
-        if (head.y > parameters.areaSize - 1) {
-            head.y = 0;
-        }
-        snake[0] = head;
-    }
-    for (i = 0; i < snake.length; i++) {
-        let body = snake[i];
+    let body = snake.body;
+    for (i = 0; i < body.length; i++) {
+        let position = body[i];
         context.fillStyle = "green";
-        context.fillRect(body.x * boxSize, body.y * boxSize, boxSize, boxSize);
-        board[body.x][body.y] = -1;
+        context.fillRect(position.x * boxSize, position.y * boxSize, boxSize, boxSize);
 
     }
 
-    if (snake[0].x == food.x && snake[0].y == food.y) {
-        createNewFood = true;
+    if (snake.food) {
+        context.fillStyle = "red";
+        context.fillRect(snake.food.x * boxSize, snake.food.y * boxSize, boxSize, boxSize);
     }
-}
-
-function createFood() {
-    validPositions = [];
-    for (let i = 0; i < parameters.areaSize; i++) {
-        for (let j = 0; j < parameters.areaSize; j++) {
-            if (board[i][j] == 0) {
-                validPositions.push({ x: i, y: j });
-            }
-        }
-    }
-    let index = Math.floor(Math.random() * (validPositions.length - 1) + 1);
-    let position = validPositions[index];
-    food = position;
-    createNewFood = false;
-}
-
-function renderFood() {
-    context.fillStyle = "red";
-    context.fillRect(food.x * boxSize, food.y * boxSize, boxSize, boxSize);
 }
 
 function updateGame() {
+    renderBackground();
+
     let forceNextGen = false;
-    if(food_lifetime <= 0){
+    if (food_lifetime <= 0) {
         food_lifetime = parameters.areaSize * 2;
         forceNextGen = true;
     }
-    restartBoard();
-    if (createNewFood) {
-        createFood();
-    }
-    renderBackground();
-    renderFood();
     let _input = {
-        food: food
+        forceNextGen: forceNextGen
     }
-    snakes = manager.training(_input,forceNextGen);
+    snakes = manager.training(_input);
 
-    for (let i = 0, size = snakes.length; i < size; i++) {
+    for (let i = 0, size = snakes.length; i < maxSnakeRender && i < size; i++) {
         renderSnake(snakes[i]);
     }
     food_lifetime--;

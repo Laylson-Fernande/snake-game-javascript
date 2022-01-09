@@ -4,8 +4,9 @@ class Snake {
         x: 1,
         y: 0
     }
-
+    numberChangesDirection = 0;
     turnRight() {
+        this.numberChangesDirection++;
         if (this.direction.x == 1) {
             this.direction = {
                 x: 0, y: -1
@@ -26,6 +27,7 @@ class Snake {
     }
 
     turnLeft() {
+        this.numberChangesDirection++;
         if (this.direction.x == 1) {
             this.direction = {
                 x: 0, y: 1
@@ -45,15 +47,29 @@ class Snake {
         }
     }
 
-    updateBody(eating) {
-        let head = this.body[0];
-        let newHead = {
-            x: head.x + this.direction.x,
-            y: head.y + this.direction.y
-        }
-        this.body.unshift(newHead);
-        if (!eating) {
-            this.body.pop();
+    updateBody(eating, _areaSize) {
+        if (this.body.length > 0) {
+            let head = this.body[0];
+            let newHead = {
+                x: head.x + this.direction.x,
+                y: head.y + this.direction.y
+            }
+            if (newHead.x < 0) {
+                newHead.x = parameters.areaSize - 1;
+            }
+            if (newHead.x > parameters.areaSize - 1) {
+                newHead.x = 0;
+            }
+            if (newHead.y < 0) {
+                newHead.y = parameters.areaSize - 1;
+            }
+            if (newHead.y > parameters.areaSize - 1) {
+                newHead.y = 0;
+            }
+            this.body.unshift(newHead);
+            if (!eating) {
+                this.body.pop();
+            }
         }
     }
 }
@@ -62,6 +78,8 @@ class SnakeTrainer extends Snake {
     neural;
     fitness = 0;
     genes = [];
+    food;
+    foodLifeTime;
 
     isAlive = true;
     constructor(initialize) {
@@ -74,7 +92,41 @@ class SnakeTrainer extends Snake {
             this.neural = new Network(TrainingManager.NEURAL_LAYERS, TrainingManager.LEARNING_RATE);
         }
         this.genes.length = TrainingManager.GENES_SIZE;
+        this.foodLifeTime = TrainingManager.AREA_SIZE * 2;
+        this.createFood();
         return this;
+    }
+
+    createFood(_input) {
+        let position;
+        if (_input) {
+            let validPositions = [];
+            for (let i = 0; i < TrainingManager.AREA_SIZE; i++) {
+                for (let j = 0; j < TrainingManager.AREA_SIZE; j++) {
+                    let index = (i * (TrainingManager.AREA_SIZE - 1)) + j;
+                    if (_input[index] == 0) {
+                        validPositions.push({ x: i, y: j });
+                    }
+                }
+            }
+            let index = Math.floor(Math.random() * (validPositions.length - 1) + 1);
+            position = validPositions[index];
+        } else {
+            position = {
+                x: Math.floor(Math.random() * (TrainingManager.AREA_SIZE - 1) + 1),
+                y: Math.floor(Math.random() * (TrainingManager.AREA_SIZE - 1) + 1)
+            }
+        }
+        this.food = position;
+        this.foodLifeTime = TrainingManager.AREA_SIZE * 2;
+    }
+
+    updateFoodLifeTime() {
+        this.foodLifeTime--;
+        if (this.foodLifeTime <= 0) {
+            this.isAlive = false;
+            TrainingManager.REMAINING_POPULATION--;
+        }
     }
 
     predict(_input) {
@@ -91,7 +143,7 @@ class SnakeTrainer extends Snake {
         TrainingManager.GENES_SIZE = this.genes.length;
     }
 
-    updateNeural(){
+    updateNeural() {
         this.neural.setGenes(this.genes);
         this.genes = null;
     }
