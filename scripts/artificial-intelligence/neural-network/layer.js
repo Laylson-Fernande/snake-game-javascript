@@ -41,6 +41,7 @@ class Layer {
         this.weights.dataFromArray(tempArray);
 
         genesIndex = size;
+        size = size + this.bias.rows * this.bias.cols;
         tempArray = genes.slice(genesIndex, size);
         this.bias.dataFromArray(tempArray);
         return genes.slice(size);

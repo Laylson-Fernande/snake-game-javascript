@@ -5,10 +5,10 @@ let boxSize = 32;
 let parameters = {
     areaSize: 16,
     populationSize: 500,
-    percentEliteChromosomes: 0.2,
-    percentTournamentSelection: 0.5,
-    mutationRate: 0.20,
-    neuralLayers: [258,100, 10, 2],
+    percentEliteChromosomes: 0.1,
+    percentTournamentSelection: 0.40,
+    mutationRate: 0.05,
+    neuralLayers: [1, 10, 2],
     learningRate: 0.01
 }
 let manager = new TrainingManager(parameters);

@@ -4,8 +4,10 @@ class Snake {
         x: 1,
         y: 0
     }
+    history = [];
     numberChangesDirection = 0;
     turnRight() {
+        this.history.push("turnRight");
         this.numberChangesDirection++;
         if (this.direction.x == 1) {
             this.direction = {
@@ -27,6 +29,7 @@ class Snake {
     }
 
     turnLeft() {
+        this.history.push("turnLeft");
         this.numberChangesDirection++;
         if (this.direction.x == 1) {
             this.direction = {
@@ -55,20 +58,27 @@ class Snake {
                 y: head.y + this.direction.y
             }
             if (newHead.x < 0) {
-                newHead.x = parameters.areaSize - 1;
+                this.isAlive = false;
+                TrainingManager.REMAINING_POPULATION--;
             }
             if (newHead.x > parameters.areaSize - 1) {
-                newHead.x = 0;
+                this.isAlive = false;
+                TrainingManager.REMAINING_POPULATION--;
             }
             if (newHead.y < 0) {
-                newHead.y = parameters.areaSize - 1;
+                this.isAlive = false;
+                TrainingManager.REMAINING_POPULATION--;
             }
             if (newHead.y > parameters.areaSize - 1) {
-                newHead.y = 0;
+                this.isAlive = false;
+                TrainingManager.REMAINING_POPULATION--;
             }
             this.body.unshift(newHead);
+            this.body.pop();
             if (!eating) {
-                this.body.pop();
+
+            } else {
+                this.history.push("eat a food");
             }
         }
     }
@@ -82,7 +92,7 @@ class SnakeTrainer extends Snake {
     foodLifeTime;
 
     isAlive = true;
-    constructor(initialize) {
+    constructor() {
         super();
         this.body[0] = {
             x: Math.floor(Math.random() * (TrainingManager.AREA_SIZE - 1) + 1),

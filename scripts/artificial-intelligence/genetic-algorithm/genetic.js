@@ -32,7 +32,7 @@ class GeneticAlgorithm {
     }
 
     crossoverChromosome(a, b) {
-        let crossoverChromosome = new SnakeTrainer(true);
+        let crossoverChromosome = new SnakeTrainer();
         for (let i = 0, size = a.genes.length; i < size; i++) {
             if (Math.random() < 0.5) {
                 crossoverChromosome.genes[i] = a.genes[i];
@@ -44,7 +44,7 @@ class GeneticAlgorithm {
     }
 
     mutateChromosome(chromosome) {
-        let mutateChromosome = new SnakeTrainer(true);
+        let mutateChromosome = new SnakeTrainer();
         for (let i = 0, size = chromosome.genes.length; i < size; i++) {
             if (Math.random() < TrainingManager.MUTATION_RATE) {
                 if (Math.random() < 0.5) {
@@ -61,9 +61,9 @@ class GeneticAlgorithm {
 
     selectTournamentPopulation(population) {
         let tournamentPopulation = new Population(TrainingManager.TOURNAMENT_SELECTION_SIZE);
-        let sizeChromosomes = population.chromosomes.length;
+        let numberChromosomes = population.chromosomes.length;
         for (let i = 0; i < TrainingManager.TOURNAMENT_SELECTION_SIZE; i++) {
-            let index = Math.floor(Math.random() * sizeChromosomes);
+            let index = Math.floor(Math.random() * numberChromosomes);
             tournamentPopulation.chromosomes[i] = population.chromosomes[index];
         }
         tournamentPopulation.sortChromosomeByFitness();

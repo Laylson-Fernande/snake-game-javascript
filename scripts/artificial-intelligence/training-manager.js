@@ -12,9 +12,9 @@ class TrainingManager {
     static HEAD_VALUE = 300;
     static DIRECTION_MULTIPLIER = 600;
 
-    static SCORE_CHANGE_DIRECTIN = 150;
+    static SCORE_CHANGE_DIRECTIN = 0;
     static SCORE_BY_SURVIVOR = 0;
-    static SCORE_BY_FOOD = 300;
+    static SCORE_BY_FOOD = 1;
     static SCORE_DISTANCE_FOOD = 0;
 
     static REMAINING_POPULATION = 0;
@@ -59,9 +59,17 @@ class TrainingManager {
             }
         }
 
-        this.input.length = TrainingManager.AREA_SIZE * TrainingManager.AREA_SIZE;
+        this.input.length = TrainingManager.AREA_SIZE + 2;
         for (let i = 0, size = this.input.length; i < size; i++) {
-            this.input[i] = 0;
+            this.input[i] = [];
+            this.input[i].length = size;
+            for (let j = 0; j < size; j++) {
+                if (i == 0 || i == size - 1 || j == 0 || j == size - 1) {
+                    this.input[i][j] = -1;
+                } else {
+                    this.input[i][j] = 0;
+                }
+            }
         }
 
         this.population = new Population(TrainingManager.POPULATION_SIZE);
@@ -77,7 +85,7 @@ class TrainingManager {
         if (TrainingManager.REMAINING_POPULATION <= 0 || _input.forceNextGen) {
             this.population.sortChromosomeByFitness();
             let best = this.population.chromosomes[0];
-            console.log("Next Generation: " + this.generationNumber + " Best Fitness Last Generation: "+ best.getFitness() + " Number of changes direction: "+best.numberChangesDirection);
+            console.log("Next Generation: " + this.generationNumber + " Best Fitness Last Generation: " + best.getFitness() + " Number of changes direction: " + best.numberChangesDirection);
             console.log("--------------------");
             this.evolve();
         }
@@ -96,30 +104,73 @@ class TrainingManager {
     }
 
     addSnakeToInput(_input, snake) {
-        let data = _input.data;
-        let body = snake.body;
-        let head = body[0];
+        let data = _input.data.slice(0);
+        let body = snake.body.slice(0);
         let direction = snake.direction;
-
-        let index = this.xyToIndex(head.x, head.y);
-        data[index] = TrainingManager.HEAD_VALUE;
-
-        data[data.length] = (head.x + direction.x) * TrainingManager.DIRECTION_MULTIPLIER;
-        data[data.length] = (head.y + direction.y) * TrainingManager.DIRECTION_MULTIPLIER;
-        for (let i = 1; i < body.length; i++) {
-            let position = body[i];
-
-            index = this.xyToIndex(position.x, position.y);
-            data[index] = -1;
+        let food = snake.food;
+        let newFood = {
+            x: food.x,
+            y: food.y
         }
-        if (snake.food) {
-            let food = snake.food;
-            let index = this.xyToIndex(food.x, food.y);
-            data[index] = TrainingManager.FOOD_VALUE;
-            _input.food = food;
+        let _areaSize = TrainingManager.AREA_SIZE;
+
+        if (direction.y == 1) {
+            let newXFood = food.y;
+            let newYFood = _areaSize - food.x - 1;
+            newFood.x = newXFood;
+            newFood.y = newYFood;
+            for (let i = 1; i < body.length; i++) {
+                let position = body[i];
+                let newX = position.y;
+                let newY = _areaSize - position.x - 1;
+                position.x = newX;
+                position.y = newY;
+            }
+        } else if (direction.y == -1) {
+            let newXFood = _areaSize - food.y - 1;
+            let newYFood = food.x;
+            newFood.x = newXFood;
+            newFood.y = newYFood;
+            for (let i = 1; i < body.length; i++) {
+                let position = body[i];
+                let newX = _areaSize - position.y - 1;
+                let newY = position.x;
+                position.x = newX;
+                position.y = newY;
+            }
+        } else if (direction.x == -1) {
+            let newXFood = _areaSize - food.y - 1;
+            let newYFood = food.x;
+            newFood.x = newXFood;
+            newFood.y = newYFood;
+
+            newXFood = _areaSize - food.y - 1;
+            newYFood = food.x;
+            newFood.x = newXFood;
+            newFood.y = newYFood;
+            for (let i = 1; i < body.length; i++) {
+                let position = body[i];
+                let newX = _areaSize - position.y - 1;
+                let newY = position.x;
+                position.x = newX;
+                position.y = newY;
+
+                newX = _areaSize - position.y - 1;
+                newY = position.x;
+                position.x = newX;
+                position.y = newY;
+            }
         }
 
-        _input.data = data;
+        let distanceX = body[0].x - newFood.x;
+        let distanceY = body[0].y - newFood.y;
+        let radian = Math.atan2(distanceY, distanceX);
+        let angle = radian * (180 / Math.PI);
+
+        let inputData = [];
+        inputData.push(angle);
+
+        _input.inputData = inputData;
         return _input;
     }
 
@@ -169,7 +220,7 @@ class TrainingManager {
         let newInput = this.addSnakeToInput(_input, chromosome);
 
 
-        let predict = this.predict(_input.data, chromosome);
+        let predict = this.predict(newInput.inputData, chromosome);
         if (predict != -1) {
             if (predict == 1) {
                 chromosome.turnRight();
@@ -209,14 +260,15 @@ class TrainingManager {
                 chromosome.isAlive = false;
             }
         } else {
-            console.log("Invalid Result");
+            chromosome.updateBody(false);
+            chromosome.isAlive = false;
         }
         return survived;
     }
 
     predict(_input, chromosome) {
         let predict = chromosome.predict(_input);
-        let result = 0;
+        let result = -1;
         if (predict[0] < 0.5 && predict[1] < 0.5) {
             result = 0;
         } else if (predict[0] >= 0.5 && predict[1] < 0.5) {
