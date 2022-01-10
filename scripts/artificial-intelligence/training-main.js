@@ -4,11 +4,11 @@ let maxSnakeRender = 1;
 let boxSize = 32;
 let parameters = {
     areaSize: 16,
-    populationSize: 500,
+    populationSize: 10,
     percentEliteChromosomes: 0.1,
     percentTournamentSelection: 0.40,
-    mutationRate: 0.05,
-    neuralLayers: [1, 10, 2],
+    mutationRate: 0.25,
+    neuralLayers: [3, 10, 10, 3],
     learningRate: 0.01
 }
 let manager = new TrainingManager(parameters);
@@ -25,7 +25,12 @@ function renderSnake(snake) {
     let body = snake.body;
     for (i = 0; i < body.length; i++) {
         let position = body[i];
-        context.fillStyle = "green";
+
+        if (i == 0) {
+            context.fillStyle = "blue";
+        } else {
+            context.fillStyle = "green";
+        }
         context.fillRect(position.x * boxSize, position.y * boxSize, boxSize, boxSize);
 
     }

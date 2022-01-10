@@ -12,7 +12,7 @@ class TrainingManager {
     static HEAD_VALUE = 300;
     static DIRECTION_MULTIPLIER = 600;
 
-    static SCORE_CHANGE_DIRECTIN = 0;
+    static SCORE_CHANGE_DIRECTIN = 1;
     static SCORE_BY_SURVIVOR = 0;
     static SCORE_BY_FOOD = 1;
     static SCORE_DISTANCE_FOOD = 0;
@@ -91,7 +91,7 @@ class TrainingManager {
         }
         _input = this.prepareInput(_input);
         let result = this.predictPopulation(_input);
-        result.sort(function (a, b) {
+        result.sort(function(a, b) {
             return b.getFitness() - a.getFitness();
         });
         return result;
@@ -103,11 +103,41 @@ class TrainingManager {
         return _input;
     }
 
+    pirntBoard(board) {
+        for (let i = 0; i < board.length; i++) {
+            console.log(board[i].toString());
+        }
+    }
     addSnakeToInput(_input, snake) {
         let data = _input.data.slice(0);
         let body = snake.body.slice(0);
         let direction = snake.direction;
+        let newDirection = {
+            x: 1,
+            y: 0
+        }
+        if (!snake.food) {
+            snake.createFood();
+        }
         let food = snake.food;
+        let board = data.slice(0);
+        for (let i = 0; i < body.length; i++) {
+            let position = body[i];
+            if (i == 0) {
+                board[position.x][position.y] = 2;
+                let nextHead = {
+                    x: position.x + direction.x,
+                    y: position.y + direction.y
+                }
+                board[nextHead.x][nextHead.y] = 3;
+            } else {
+                board[position.x][position.y] = 1;
+            }
+        }
+
+        board[food.x][food.y] = 10;
+        this.pirntBoard(board);
+
         let newFood = {
             x: food.x,
             y: food.y
@@ -119,24 +149,28 @@ class TrainingManager {
             let newYFood = _areaSize - food.x - 1;
             newFood.x = newXFood;
             newFood.y = newYFood;
+
             for (let i = 1; i < body.length; i++) {
                 let position = body[i];
                 let newX = position.y;
                 let newY = _areaSize - position.x - 1;
                 position.x = newX;
                 position.y = newY;
+                body[i] = position;
             }
         } else if (direction.y == -1) {
             let newXFood = _areaSize - food.y - 1;
             let newYFood = food.x;
             newFood.x = newXFood;
             newFood.y = newYFood;
+
             for (let i = 1; i < body.length; i++) {
                 let position = body[i];
                 let newX = _areaSize - position.y - 1;
                 let newY = position.x;
                 position.x = newX;
                 position.y = newY;
+                body[i] = position;
             }
         } else if (direction.x == -1) {
             let newXFood = _areaSize - food.y - 1;
@@ -144,10 +178,11 @@ class TrainingManager {
             newFood.x = newXFood;
             newFood.y = newYFood;
 
-            newXFood = _areaSize - food.y - 1;
-            newYFood = food.x;
+            newXFood = _areaSize - newFood.y - 1;
+            newYFood = newFood.x;
             newFood.x = newXFood;
             newFood.y = newYFood;
+
             for (let i = 1; i < body.length; i++) {
                 let position = body[i];
                 let newX = _areaSize - position.y - 1;
@@ -159,18 +194,44 @@ class TrainingManager {
                 newY = position.x;
                 position.x = newX;
                 position.y = newY;
+                body[i] = position;
             }
         }
+
+        board = null;
+        board = data.slice(0);
+        for (let i = 0; i < body.length; i++) {
+            let position = body[i];
+            if (i == 0) {
+                board[position.x][position.y] = 2;
+                let nextHead = {
+                    x: position.x + newDirection.x,
+                    y: position.y + newDirection.y
+                }
+                board[nextHead.x][nextHead.y] = 3;
+            } else {
+                board[position.x][position.y] = 1;
+            }
+        }
+
+        board[newFood.x][newFood.y] = 10;
+        //this.pirntBoard(board);
 
         let distanceX = body[0].x - newFood.x;
         let distanceY = body[0].y - newFood.y;
         let radian = Math.atan2(distanceY, distanceX);
         let angle = radian * (180 / Math.PI);
 
+        let distance = Math.sqrt(distanceX * distanceY);
         let inputData = [];
         inputData.push(angle);
+        inputData.push(distance);
+        inputData.push(1);
 
         _input.inputData = inputData;
+        _input.food = newFood;
+        _input.direction = newDirection;
+        _input.body = body;
         return _input;
     }
 
@@ -222,42 +283,44 @@ class TrainingManager {
 
         let predict = this.predict(newInput.inputData, chromosome);
         if (predict != -1) {
+            let newDirection = {
+                x: newInput.direction.x,
+                y: newInput.direction.y
+            }
             if (predict == 1) {
                 chromosome.turnRight();
                 chromosome.sumFitness(TrainingManager.SCORE_CHANGE_DIRECTIN);
+                newDirection = SnakeTrainer.turnDirection(newInput.direction, true);
             } else if (predict == 2) {
                 chromosome.turnLeft();
                 chromosome.sumFitness(TrainingManager.SCORE_CHANGE_DIRECTIN);
+                newDirection = SnakeTrainer.turnDirection(newInput.direction, false);
             }
-            let head = chromosome.body[0];
+            let head = newInput.body[0];
             let newHead = {
-                x: head.x + chromosome.direction.x,
-                y: head.y + chromosome.direction.y
+                x: head.x + newDirection.x,
+                y: head.y + newDirection.y
             }
-            let index = this.xyToIndex(newHead.x, newHead.y);
-            let target = _input.data[index];
-            if (target != -1) {
+
+            if (newHead.x == newInput.food.x && newHead.y == newInput.food.y) {
+                chromosome.updateBody(true, TrainingManager.AREA_SIZE);
+                chromosome.sumFitness(TrainingManager.SCORE_BY_FOOD + chromosome.foodLifeTime);
+                chromosome.createFood(newInput.data);
+            } else {
+                chromosome.updateBody(false, TrainingManager.AREA_SIZE);
+                let food = newInput.food;
+                if (food) {
+                    let distance_x = Math.max(food.x, newHead.x) - Math.min(food.x, newHead.x);
+                    let distance_y = Math.max(food.y, newHead.y) - Math.min(food.y, newHead.y);
+                    let distance = distance_x + distance_y;
+                    let score = ((TrainingManager.AREA_SIZE - 1) * 2) - distance;
+                    chromosome.sumFitness(score * TrainingManager.SCORE_DISTANCE_FOOD);
+
+                }
+            }
+            if (chromosome.isAlive) {
                 survived = true;
                 chromosome.sumFitness(TrainingManager.SCORE_BY_SURVIVOR);
-                if (target == TrainingManager.FOOD_VALUE) {
-                    chromosome.updateBody(true, TrainingManager.areaSize);
-                    chromosome.sumFitness(TrainingManager.SCORE_BY_FOOD);
-                    chromosome.createFood(_input.data);
-                } else {
-                    chromosome.updateBody(false, TrainingManager.areaSize);
-                    let food = _input.food;
-                    if (food) {
-                        let distance_x = Math.max(food.x, newHead.x) - Math.min(food.x, newHead.x);
-                        let distance_y = Math.max(food.y, newHead.y) - Math.min(food.y, newHead.y);
-                        let distance = distance_x + distance_y;
-                        let score = ((TrainingManager.AREA_SIZE - 1) * 2) - distance;
-                        chromosome.sumFitness(score * TrainingManager.SCORE_DISTANCE_FOOD);
-
-                    }
-                }
-            } else {
-                chromosome.updateBody(false);
-                chromosome.isAlive = false;
             }
         } else {
             chromosome.updateBody(false);
@@ -269,11 +332,11 @@ class TrainingManager {
     predict(_input, chromosome) {
         let predict = chromosome.predict(_input);
         let result = -1;
-        if (predict[0] < 0.5 && predict[1] < 0.5) {
+        if (predict[0] >= 0.5 && predict[1] < 0.5 && predict[2] < 0.5) {
             result = 0;
-        } else if (predict[0] >= 0.5 && predict[1] < 0.5) {
+        } else if (predict[1] >= 0.5 && predict[0] < 0.5 && predict[2] < 0.5) {
             result = 1;
-        } else if (predict[1] >= 0.5 && predict[0] < 0.5) {
+        } else if (predict[2] >= 0.5 && predict[0] < 0.5 && predict[1] < 0.5) {
             result = 2;
         }
         return result;

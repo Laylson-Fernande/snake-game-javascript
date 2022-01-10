@@ -9,45 +9,67 @@ class Snake {
     turnRight() {
         this.history.push("turnRight");
         this.numberChangesDirection++;
-        if (this.direction.x == 1) {
-            this.direction = {
-                x: 0, y: -1
-            }
-        } else if (this.direction.x - 1) {
-            this.direction = {
-                x: 0, y: 1
-            }
-        } else if (this.direction.y == 1) {
-            this.direction = {
-                x: 1, y: 0
-            }
-        } else if (this.direction.y == -1) {
-            this.direction = {
-                x: -1, y: 0
-            }
-        }
+        this.direction = SnakeTrainer.turnDirection(this.direction, true);
     }
 
     turnLeft() {
         this.history.push("turnLeft");
         this.numberChangesDirection++;
-        if (this.direction.x == 1) {
-            this.direction = {
-                x: 0, y: 1
-            }
-        } else if (this.direction.x - 1) {
-            this.direction = {
-                x: 0, y: -1
-            }
-        } else if (this.direction.y == 1) {
-            this.direction = {
-                x: -1, y: 0
-            }
-        } else if (this.direction.y == -1) {
-            this.direction = {
-                x: 1, y: 0
-            }
+        this.direction = SnakeTrainer.turnDirection(this.direction, false);
+    }
+
+    static turnDirection(direction, right) {
+        let newDirection = {
+            x: direction.x,
+            y: direction.y
         }
+        if (right) {
+            if (direction.x == 1) {
+                newDirection = {
+                    x: 0,
+                    y: -1
+                }
+            } else if (direction.x - 1) {
+                newDirection = {
+                    x: 0,
+                    y: 1
+                }
+            } else if (direction.y == 1) {
+                newDirection = {
+                    x: 1,
+                    y: 0
+                }
+            } else if (direction.y == -1) {
+                newDirection = {
+                    x: -1,
+                    y: 0
+                }
+            }
+        } else {
+            if (direction.x == 1) {
+                newDirection = {
+                    x: 0,
+                    y: 1
+                }
+            } else if (direction.x - 1) {
+                newDirection = {
+                    x: 0,
+                    y: -1
+                }
+            } else if (direction.y == 1) {
+                newDirection = {
+                    x: -1,
+                    y: 0
+                }
+            } else if (direction.y == -1) {
+                newDirection = {
+                    x: 1,
+                    y: 0
+                }
+            }
+
+        }
+        return newDirection;
     }
 
     updateBody(eating, _areaSize) {
@@ -73,6 +95,12 @@ class Snake {
                 this.isAlive = false;
                 TrainingManager.REMAINING_POPULATION--;
             }
+            for (let i = 1; this.isAlive && i < this.body.length; i++) {
+                let position = this.body[i];
+                if (position.x == newHead.x && position.y == newHead.y) {
+                    this.isAlive = false;
+                }
+            }
             this.body.unshift(newHead);
             this.body.pop();
             if (!eating) {
@@ -95,9 +123,14 @@ class SnakeTrainer extends Snake {
     constructor() {
         super();
         this.body[0] = {
-            x: Math.floor(Math.random() * (TrainingManager.AREA_SIZE - 1) + 1),
-            y: Math.floor(Math.random() * (TrainingManager.AREA_SIZE - 1) + 1)
+            x: 0,
+            y: 0
         }
+        let newHead = {
+            x: this.body[0].x + this.direction.x,
+            y: this.body[0].y + this.direction.y
+        }
+        this.body.unshift(newHead);
         if (TrainingManager.NEURAL_LAYERS && TrainingManager.LEARNING_RATE) {
             this.neural = new Network(TrainingManager.NEURAL_LAYERS, TrainingManager.LEARNING_RATE);
         }
@@ -128,7 +161,7 @@ class SnakeTrainer extends Snake {
             }
         }
         this.food = position;
-        this.foodLifeTime = TrainingManager.AREA_SIZE * 2;
+        this.foodLifeTime = TrainingManager.AREA_SIZE * TrainingManager.AREA_SIZE;
     }
 
     updateFoodLifeTime() {

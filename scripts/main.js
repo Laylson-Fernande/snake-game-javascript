@@ -1,24 +1,68 @@
 let mainCanvas = document.getElementById("mainCanvas");
 let context = mainCanvas.getContext("2d");
+
+let secondCanvas = document.getElementById("secondCanvas");
+let secondContext = mainCanvas.getContext("2d");
+
 let boxSize = 32;
 let areaSize = 16;
 let snake = [];
 snake[0] = {
-    x: 8 * boxSize,
-    y: 8 * boxSize
+    x: 8,
+    y: 8
 }
 
 let food = {
-    x: Math.floor(Math.random() * (areaSize - 1) + 1) * boxSize,
-    y: Math.floor(Math.random() * (areaSize - 1) + 1) * boxSize
+    x: Math.floor(Math.random() * (areaSize - 1) + 1),
+    y: Math.floor(Math.random() * (areaSize - 1) + 1)
 }
 const left_keymap = 37;
 const up_keymap = 38;
 const right_keymap = 39;
 const down_keymap = 40;
 
+function turnMatrix(right, snake, food) {
+
+    let result_snake = snake.slice(0);
+    let result_food = {
+        x: food.x,
+        y: food.y
+    }
+    if (right) {
+        let newXFood = result_food.y;
+        let newYFood = areaSize - result_food.x - 1;
+        result_food.x = newXFood;
+        result_food.y = newYFood;
+
+        for (let i = 1; i < result_snake.length; i++) {
+            let position = snake[i];
+            let newX = position.y;
+            let newY = areaSize - position.x - 1;
+            position.x = newX;
+            position.y = newY;
+            result_snake[i] = position;
+        }
+    } else {
+        let newXFood = areaSize - result_food.y - 1;
+        let newYFood = result_food.x;
+        result_food.x = newXFood;
+        result_food.y = newYFood;
+
+        for (let i = 1; i < result_snake.length; i++) {
+            let position = snake[i];
+            let newX = areaSize - position.y - 1;
+            let newY = position.x;
+            position.x = newX;
+            position.y = newY;
+            result_snake[i] = position;
+        }
+    }
+    return result_snake, result_food;
+}
+
 let direction = right_keymap;
 let hasNewDirection = true;
+
 function renderBackground() {
     context.fillStyle = "lightgreen";
     context.fillRect(0, 0, areaSize * boxSize, areaSize * boxSize);
@@ -27,13 +71,65 @@ function renderBackground() {
 function renderSnake() {
     for (i = 0; i < snake.length; i++) {
         context.fillStyle = "green";
-        context.fillRect(snake[i].x, snake[i].y, boxSize, boxSize);
+        context.fillRect(snake[i].x * boxSize, snake[i].y * boxSize, boxSize, boxSize);
     }
 }
 
 function renderFood() {
     context.fillStyle = "red";
-    context.fillRect(food.x, food.y, boxSize, boxSize);
+    context.fillRect(food.x * boxSize, food.y * boxSize, boxSize, boxSize);
+}
+
+function renderSecondView() {
+    secondContext.fillStyle = "lightgreen";
+    secondContext.fillRect(0, 0, areaSize * boxSize, areaSize * boxSize);
+
+    let newSnake;
+    let newFood;
+
+    if (direction == up_keymap) {
+        newSnake,
+        newFood = turnMatrix(true, snake, food);
+    }
+    else if (direction.y == -1) {
+        let newXFood = _areaSize - food.y - 1;
+        let newYFood = food.x;
+        newFood.x = newXFood;
+        newFood.y = newYFood;
+
+        for (let i = 1; i < body.length; i++) {
+            let position = body[i];
+            let newX = _areaSize - position.y - 1;
+            let newY = position.x;
+            position.x = newX;
+            position.y = newY;
+            body[i] = position;
+        }
+    } else if (direction.x == -1) {
+        let newXFood = _areaSize - food.y - 1;
+        let newYFood = food.x;
+        newFood.x = newXFood;
+        newFood.y = newYFood;
+
+        newXFood = _areaSize - newFood.y - 1;
+        newYFood = newFood.x;
+        newFood.x = newXFood;
+        newFood.y = newYFood;
+
+        for (let i = 1; i < body.length; i++) {
+            let position = body[i];
+            let newX = _areaSize - position.y - 1;
+            let newY = position.x;
+            position.x = newX;
+            position.y = newY;
+
+            newX = _areaSize - position.y - 1;
+            newY = position.x;
+            position.x = newX;
+            position.y = newY;
+            body[i] = position;
+        }
+    }
 }
 
 function createFood() {
